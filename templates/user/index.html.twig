@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Users{% endblock %}
+
+{% block body %}
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+        }
+
+        td, th {
+            border: 1px solid black;
+            text-align: center;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        a {
+            text-decoration: none;
+        }
+    </style>
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 40%; width: 800px; margin: 0 auto">
+    <h1>Account</h1>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Email</th>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <th>Roles</th>
+                {% endif %}
+                <th>FirstName</th>
+                <th>LastName</th>
+                <th>Address</th>
+                <th>Balance</th>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <th>Show</th>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN') %}
+                    <th>Edit</th>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN') %}
+                    <th>Delete</th>
+                {% endif %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.email }}</td>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <td>{{ user.roles ? user.roles|json_encode : '' }}</td>
+                    {% endif %}
+                    <td>{{ user.firstName }}</td>
+                    <td>{{ user.lastName }}</td>
+                    <td>{{ user.address }}</td>
+                    <td>{{ user.balance }}$</td>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <td>
+                            <button style="width: 100%"><a href="{{ path('app_user_show', {'id': user.id}) }}">Show</a>
+                            </button>
+                        </td>
+                    {% endif %}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <td>
+                            <button style="width: 100%"><a href="{{ path('app_user_edit', {'id': user.id}) }}">Edit</a>
+                            </button>
+                        </td>
+                    {% endif %}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <td>
+                            {{ include('user/_delete_form.html.twig') }}
+                        </td>
+                    {% endif %}
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="9">No users found</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Home page{% endblock %}
+
+{% block body %}
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+        }
+
+        td, th {
+            border: 1px solid black;
+            text-align: center;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        input[type="number"] {
+            width: 50px;
+        }
+    </style>
+
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60%; width: 800px; margin: 0 auto">
+        <h1>Welcome to Daniil Baranovskiy store!</h1>
+
+        <h1>Products</h1>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>StockQuantity</th>
+                <th>Show</th>
+                <th>Add to cart</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for product in products %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.description }}</td>
+                    <td>{{ product.price }}$</td>
+                    <td>{{ product.stockQuantity }}</td>
+                    <td>
+                        <button style="width: 100%">
+                            <a href="{{ path('app_product_show', {'id': product.id}) }}">Show</a>
+                        </button>
+                    </td>
+                    <td>
+                        <form action="{{ path('app_cart_add', {'productId': product.id}) }}" method="POST">
+                            <input type="number" name="quantity" value="1" min="1" max="{{ product.stockQuantity }}" required>
+                            <button type="submit">Add to Cart</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6">No products found</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

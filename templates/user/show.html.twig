@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {% if is_granted('ROLE_ADMIN') %}
+        User
+    {% else %}
+        Account
+    {% endif %}
+{% endblock %}
+{% block body %}
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+        }
+
+        td, th {
+            border: 1px solid black;
+            text-align: center;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        a {
+            text-decoration: none;
+        }
+    </style>
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70%; width: 800px; margin: 0 auto">
+        {% if is_granted('ROLE_ADMIN') %}
+            <h1>User {{ user.firstName }}</h1>
+        {% else %}
+            <h1>Account</h1>
+        {% endif %}
+        <table class="table">
+            <tbody>
+            {% if is_granted('ROLE_ADMIN') %}
+                <tr>
+                    <th>Id</th>
+                    <td>{{ user.id }}</td>
+                </tr>
+            {% endif %}
+            <tr>
+                <th>Email</th>
+                <td>{{ user.email }}</td>
+            </tr>
+            {% if is_granted('ROLE_ADMIN') %}
+                <tr>
+                    <th>Roles</th>
+                    <td>{{ user.roles ? user.roles|json_encode : '' }}</td>
+                </tr>
+            {% endif %}
+            <tr>
+                <th>FirstName</th>
+                <td>{{ user.firstName }}</td>
+            </tr>
+            <tr>
+                <th>LastName</th>
+                <td>{{ user.lastName }}</td>
+            </tr>
+            <tr>
+                <th>Address</th>
+                <td>{{ user.address }}</td>
+            </tr>
+            <tr>
+                <th>Balance</th>
+                <td>{{ user.balance }}$</td>
+            </tr>
+            </tbody>
+        </table>
+        <button><a href="{{ path('app_user_edit', {'id': user.id}) }}">Edit</a></button>
+        {{ include('user/_delete_form.html.twig') }}
+        <button><a href="{{ path('app_orders_index') }}">Orders list</a></button>
+        <button><a href="{{ path('app_user_balance', {'id': user.id}) }}">Top Up Balance</a></button>
+        {% if is_granted('ROLE_ADMIN') %}
+            <button><a href="{{ path('app_user_index') }}">User list</a></button>
+        {% endif %}
+    </div>
+{% endblock %}

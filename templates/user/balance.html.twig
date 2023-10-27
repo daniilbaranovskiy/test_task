@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Top Up Balance{% endblock %}
+
+{% block body %}
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; height: 40%; width: 800px; margin: 0 auto">
+        <h1>Top Up Balance</h1>
+        {{ form_start(form) }}
+        {{ form_row(form.amount) }}
+        <button type="submit" class="btn btn-primary" style="margin-top: 20px;">Top Up</button>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

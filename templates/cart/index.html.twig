@@ -1,0 +1,75 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cart{% endblock %}
+
+{% block body %}
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin-bottom: 10px;
+        }
+
+        td, th {
+            border: 1px solid black;
+            text-align: center;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .error-message {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60%; width: 600px; margin: 0 auto">
+        <h1>Your Cart</h1>
+        {% if cartItems|length > 0 %}
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                    <th>Remove</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% set total = 0 %}
+                {% for item in cartItems %}
+                    {% set subtotal = item.product.price * item.quantity %}
+                    {% set total = total + subtotal %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.product.price }}$</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ subtotal }}</td>
+                        <td><a href="{{ path('app_cart_remove', {'productId': item.product.id}) }}">Remove</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <p>Total: {{ total }}$</p>
+            {% if app.user is not null %}
+                {% set userBalance = app.user.balance %}
+                {% if total > userBalance %}
+                    <p class="error-message">You don't have enough balance to complete the purchase.</p>
+                {% else %}
+                    <button style="padding: 10px"><a href="{{ path('app_cart_checkout') }}">Confirm Order</a></button>
+                {% endif %}
+            {% else %}
+                <p>You need to be logged in to complete the purchase.</p>
+            {% endif %}
+        {% else %}
+            <p>Your cart is empty.</p>
+        {% endif %}
+    </div>
+{% endblock %}
