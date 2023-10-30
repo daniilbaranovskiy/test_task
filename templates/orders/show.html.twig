@@ -37,7 +37,7 @@
             {% endif %}
             <tr>
                 <th>Order Date</th>
-                <td>{{ order.orderDate }}</td>
+                <td>{{ order.orderDate|date('Y-m-d H:i:s') }}</td>
             </tr>
             <tr>
                 <th>Total Amount</th>

@@ -50,7 +50,19 @@
                     <tr>
                         <td>{{ item.product.name }}</td>
                         <td>{{ item.product.price }}$</td>
-                        <td>{{ item.quantity }}</td>
+                        <td>
+                            <form action="{{ path('app_cart_decrease', {'productId': item.product.id}) }}" method="post" style="display: inline;">
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit">-</button>
+                            </form>
+
+                            {{ item.quantity }}
+
+                            <form action="{{ path('app_cart_increase', {'productId': item.product.id}) }}" method="post" style="display: inline;">
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit">+</button>
+                            </form>
+                        </td>
                         <td>{{ subtotal }}</td>
                         <td><a href="{{ path('app_cart_remove', {'productId': item.product.id}) }}">Remove</a></td>
                     </tr>

@@ -6,12 +6,14 @@ use App\Entity\User;
 use App\Form\BalanceType;
 use App\Form\UserType;
 use App\Repository\UserRepository;
+use App\Security\UserVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/user')]
 class UserController extends AbstractController
@@ -22,6 +24,9 @@ class UserController extends AbstractController
      */
     private EntityManagerInterface $entityManager;
 
+    /**
+     * @param EntityManagerInterface $entityManager
+     */
     public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
@@ -34,7 +39,7 @@ class UserController extends AbstractController
     #[Route('/', name: 'app_user_index', methods: ['GET'])]
     public function index(UserRepository $userRepository): Response
     {
-        if (!$this->isAdmin()) {
+        if (!$this->isGranted('ROLE_ADMIN')) {
             return $this->renderNotFoundPage();
         }
         return $this->render('user/index.html.twig', [
@@ -56,7 +61,7 @@ class UserController extends AbstractController
             return $this->renderNotFoundPage();
         }
 
-        if (!$this->isAuthorized($user)) {
+        if (!$this->isGranted(UserVoter::SHOW, $user)) {
             return $this->renderNotFoundPage();
         }
 
@@ -83,7 +88,7 @@ class UserController extends AbstractController
             return $this->renderNotFoundPage();
         }
 
-        if (!$this->isAuthorized($user)) {
+        if (!$this->isGranted(UserVoter::EDIT, $user)) {
             return $this->renderNotFoundPage();
         }
 
@@ -92,7 +97,7 @@ class UserController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
-            return $this->redirectToRoute('app_home', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_user_show', ['id' => $user->getId()]);
         }
 
         return $this->render('user/edit.html.twig', [
@@ -116,7 +121,7 @@ class UserController extends AbstractController
             return $this->renderNotFoundPage();
         }
 
-        if (!$this->isAuthorized($user)) {
+        if (!$this->isGranted(UserVoter::DELETE, $user)) {
             return $this->renderNotFoundPage();
         }
 
@@ -130,18 +135,24 @@ class UserController extends AbstractController
 
     /**
      * @param Request $request
+     * @param UserRepository $userRepository
+     * @param $id
      * @return Response
      */
     #[Route('/{id}/balance', name: 'app_user_balance', methods: [
         'GET',
         'POST'
     ])]
-    public function topUpBalance(Request $request): Response
+    public function topUpBalance(Request $request, UserRepository $userRepository, $id): Response
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = $userRepository->find($id);
         if (!$user) {
             return $this->redirectToRoute('app_login');
+        }
+
+        if (!$this->isGranted(UserVoter::BALANCE, $user)) {
+            return $this->renderNotFoundPage();
         }
 
         $form = $this->createForm(BalanceType::class, $user);
@@ -164,25 +175,6 @@ class UserController extends AbstractController
         return $this->render('user/balance.html.twig', [
             'form' => $form->createView(),
         ]);
-    }
-
-    /**
-     * @return bool
-     */
-    private function isAdmin(): bool
-    {
-        return $this->isGranted('ROLE_ADMIN');
-    }
-
-    /**
-     * @param User $user
-     * @return bool
-     */
-    private function isAuthorized(User $user): bool
-    {
-        /** @var User $currentUser */
-        $currentUser = $this->getUser();
-        return $currentUser && ($this->isAdmin() || $currentUser->getId() === $user->getId());
     }
 
     /**

@@ -2,10 +2,9 @@
 
 namespace App\Controller;
 
-use App\Entity\Orders;
-use App\Entity\User;
 use App\Form\OrdersType;
 use App\Repository\OrdersRepository;
+use App\Security\OrdersVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,14 +35,13 @@ class OrdersController extends AbstractController
     #[Route('/', name: 'app_orders_index', methods: ['GET'])]
     public function index(OrdersRepository $ordersRepository): Response
     {
-        if (!$this->isGranted('ROLE_USER')) {
+        $user = $this->getUser();
+
+        if (!$user) {
             return $this->redirectToRoute('app_login');
         }
 
-        $user = $this->getUser();
-        $isAdmin = $this->isGranted('ROLE_ADMIN');
-
-        if ($isAdmin) {
+        if ($this->isGranted('ROLE_ADMIN')) {
             $orders = $ordersRepository->findAll();
         } else {
             $orders = $ordersRepository->findBy(['user' => $user]);
@@ -68,13 +66,13 @@ class OrdersController extends AbstractController
             return $this->renderNotFoundPage();
         }
 
-        if ($this->isOrderAccessible($order)) {
-            return $this->render('orders/show.html.twig', [
-                'order' => $order,
-            ]);
+        if (!$this->isGranted(OrdersVoter::SHOW, $order)) {
+            return $this->renderNotFoundPage();
         }
 
-        return $this->renderNotFoundPage();
+        return $this->render('orders/show.html.twig', [
+            'order' => $order,
+        ]);
     }
 
     /**
@@ -95,7 +93,7 @@ class OrdersController extends AbstractController
             return $this->renderNotFoundPage();
         }
 
-        if (!$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->isGranted(OrdersVoter::EDIT, $order)) {
             return $this->renderNotFoundPage();
         }
 
@@ -129,7 +127,7 @@ class OrdersController extends AbstractController
             return $this->renderNotFoundPage();
         }
 
-        if (!$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->isGranted(OrdersVoter::DELETE, $order)) {
             return $this->renderNotFoundPage();
         }
 
@@ -139,18 +137,6 @@ class OrdersController extends AbstractController
         }
 
         return $this->redirectToRoute('app_orders_index', [], Response::HTTP_SEE_OTHER);
-    }
-
-    /**
-     * @param Orders $order
-     * @return bool
-     */
-    private function isOrderAccessible(Orders $order): bool
-    {
-        $user = $this->getUser();
-        $isAdmin = $this->isGranted('ROLE_ADMIN');
-
-        return $isAdmin || ($user instanceof User && $order->getUser() === $user);
     }
 
     /**

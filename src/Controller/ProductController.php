@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Form\ProductType;
 use App\Repository\ProductRepository;
+use App\Security\ProductVoter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -50,11 +51,11 @@ class ProductController extends AbstractController
     ])]
     public function new(Request $request): Response
     {
-        if (!$this->isAdmin()) {
+        $product = new Product();
+
+        if (!$this->isGranted(ProductVoter::NEW, $product)) {
             return $this->renderNotFoundPage();
         }
-
-        $product = new Product();
         $form = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
 
@@ -108,7 +109,7 @@ class ProductController extends AbstractController
             return $this->renderNotFoundPage();
         }
 
-        if (!$this->isAdmin()) {
+        if (!$this->isGranted(ProductVoter::EDIT, $product)) {
             return $this->renderNotFoundPage();
         }
 
@@ -142,20 +143,16 @@ class ProductController extends AbstractController
             return $this->renderNotFoundPage();
         }
 
+        if (!$this->isGranted(ProductVoter::DELETE, $product)) {
+            return $this->renderNotFoundPage();
+        }
+
         if ($this->isCsrfTokenValid('delete' . $product->getId(), $request->request->get('_token'))) {
             $this->entityManager->remove($product);
             $this->entityManager->flush();
         }
 
         return $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
-    }
-
-    /**
-     * @return bool
-     */
-    private function isAdmin(): bool
-    {
-        return $this->isGranted('ROLE_ADMIN');
     }
 
     /**
